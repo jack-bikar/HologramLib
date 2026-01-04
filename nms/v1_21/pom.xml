@@ -20,7 +20,7 @@
     <!-- ──────────────── properties ──────────────── -->
     <properties>
         <!-- Mojang-mapped Spigot for MC 1.21.5 -->
-        <remapped.version>1.21.4-R0.1-SNAPSHOT</remapped.version>
+        <remapped.version>1.21.11-R0.1-SNAPSHOT</remapped.version>
         <java.version>17</java.version>
     </properties>
 
