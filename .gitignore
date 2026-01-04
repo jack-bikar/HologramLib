@@ -67,3 +67,17 @@ REBASE.bat
 
 # Place your proprietary software here, this won't get synced to remote
 library/
+
+# Cursor / VS Code
+.cursor/
+.vscode/
+
+# Log files
+*.log
+
+# Patch files
+*.orig
+*.rej
+
+# Compiled class files (backup in case something escapes target/)
+*.class
