@@ -5,12 +5,15 @@ import games.coob.commons.HologramRegistry;
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
 import net.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacket;
 import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.minecraft.world.entity.decoration.ArmorStand;
 import org.bukkit.Location;
 import org.bukkit.craftbukkit.v1_19_R3.CraftWorld;
+import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_19_R3.util.CraftChatMessage;
 import org.bukkit.entity.Player;
-import org.mineacademy.fo.remain.Remain;
+import games.coob.commons.Utils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -67,9 +70,12 @@ public class Hologram_v1_19 extends Hologram {
      * @param armorStand The armor stand entity whose visibility is being updated.
      * @param player     The player to whom the packet is sent.
      */
-    private void sendPackets(final ArmorStand armorStand, final Player player) {
-        Remain.sendPacket(player, new ClientboundAddEntityPacket(armorStand));
-        Remain.sendPacket(player, new ClientboundSetEntityDataPacket(armorStand.getId(), armorStand.getEntityData().getNonDefaultValues()));
+    private static void sendPackets(final ArmorStand armorStand, final Player player) {
+        final ServerPlayer nms = ((CraftPlayer) player).getHandle();
+        final ServerGamePacketListenerImpl connection = nms.connection;
+
+        connection.send(new ClientboundAddEntityPacket(armorStand));
+        connection.send(new ClientboundSetEntityDataPacket(armorStand.getId(), armorStand.getEntityData().getNonDefaultValues()));
     }
 
     /**
@@ -123,9 +129,12 @@ public class Hologram_v1_19 extends Hologram {
         if (!isViewer(player))
             return;
 
+        final ServerPlayer nms = ((CraftPlayer) player).getHandle();
+        final ServerGamePacketListenerImpl connection = nms.connection;
+
         this.entityLinesList.forEach(armorStand -> {
             armorStand.valid = false;
-            Remain.sendPacket(player, new ClientboundRemoveEntitiesPacket(armorStand.getId()));
+            connection.send(new ClientboundRemoveEntitiesPacket(armorStand.getId()));
         });
 
         this.getViewers().remove(player.getUniqueId());
@@ -139,13 +148,16 @@ public class Hologram_v1_19 extends Hologram {
     @Override
     public void remove() {
         for (final UUID uuid : this.getViewers()) {
-            final Player player = Remain.getPlayerByUUID(uuid);
+            final Player player = Utils.getPlayerByUUID(uuid);
 
             if (player == null)
                 continue;
 
+            final ServerPlayer nms = ((CraftPlayer) player).getHandle();
+            final ServerGamePacketListenerImpl connection = nms.connection;
+
             this.entityLinesList.forEach(armorStand -> {
-                Remain.sendPacket(player, new ClientboundRemoveEntitiesPacket(armorStand.getId()));
+                connection.send(new ClientboundRemoveEntitiesPacket(armorStand.getId()));
                 armorStand.discard();
             });
         }
@@ -171,15 +183,17 @@ public class Hologram_v1_19 extends Hologram {
         for (int i = 0; i < currentSize; i++) {
             if (i < newSize) {
                 final ArmorStand armorStand = this.entityLinesList.get(i);
-                Remain.setCustomName(armorStand.getBukkitEntity(), lines[i]);
+                armorStand.setCustomName(CraftChatMessage.fromStringOrNull(lines[i]));
             } else {
                 final ArmorStand armorStand = this.entityLinesList.remove(i--);
                 armorStand.discard();
 
                 for (final UUID viewerUUID : getViewers()) {
-                    final Player viewer = Remain.getPlayerByUUID(viewerUUID);
-                    if (viewer != null)
-                        Remain.sendPacket(viewer, new ClientboundRemoveEntitiesPacket(armorStand.getId()));
+                    final Player viewer = Utils.getPlayerByUUID(viewerUUID);
+                    if (viewer != null) {
+                        final ServerPlayer nmsViewer = ((CraftPlayer) viewer).getHandle();
+                        nmsViewer.connection.send(new ClientboundRemoveEntitiesPacket(armorStand.getId()));
+                    }
                 }
 
                 currentSize--;

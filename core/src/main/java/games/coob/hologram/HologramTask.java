@@ -5,7 +5,7 @@ import games.coob.commons.HologramRegistry;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
-import org.mineacademy.fo.remain.Remain;
+import games.coob.commons.Utils;
 
 /**
  * Task that periodically updates the visibility of all registered holograms for every online player.
@@ -25,7 +25,7 @@ public final class HologramTask extends BukkitRunnable {
         for (final HologramRegistry registry : HologramRegistry.getHolograms()) {
             final Hologram hologramAPI = registry.getHologram();
 
-            for (final Player player : Remain.getOnlinePlayers())
+            for (final Player player : Utils.getOnlinePlayers())
                 hologramAPI.updateVisibility(player);
         }
     }

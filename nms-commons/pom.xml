@@ -20,7 +20,7 @@
 
     <!-- ────────────────── dependencies ────────────────── -->
     <dependencies>
-        <!-- Foundation API helpers (version comes from *parent* property) -->
+        <!-- Foundation API helpers (version comes from *parent* property)-->
         <dependency>
             <groupId>com.github.kangarko</groupId>
             <artifactId>Foundation</artifactId>
